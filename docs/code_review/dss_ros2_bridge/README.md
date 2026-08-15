@@ -4,6 +4,8 @@
 
 | 날짜 | 코드 버전 | Verdict | 핵심 |
 | --- | --- | --- | --- |
+| [2026-08-16 08:30](2026-08-16-0830.md) (delta) | `DssBridgeNode.h` `99c75bfa…` 신규 4파일 + 노드 9개 재작성 | COMMENT | **High #8 해소.** 골격을 `DssBridgeNode` 로 추출 — 노드 9개 1,755줄 → 565줄(+공통 272줄, 52% 감소). 동작 보존 11항목 대조 통과. **미해결 High 0** |
+| [2026-08-16 08:15](2026-08-16-0815.md) (delta) | `DSSToROSImage.cpp` `1a1acff8…` 외 14개 변경 | REQUEST CHANGES | **리뷰 지적 반영.** High 7 + 신규 High 1 + Medium 5 `[해결]` — 퍼블리셔 순서 race · sprintf · closure UB · start() 무시 · 좀비 노드 · package.xml · unsubscribe · 쿼터니언 정규화. High 1(9벌 골격 중복) `[잔존]` → 08:30 에 해소 |
 | [2026-08-16](2026-08-16.md) (delta) | `DSSToROSImage.cpp` `16ab80eb…` 외 9개 변경 | REQUEST CHANGES | **실기 구동 delta.** 신규 High 2 (IMU 쿼터니언 norm 0.707 비정규화 발행, 스테레오 4개 노드의 원천 subject 부재) · QoS `[해결]` · Critical 1 → Medium 재평가 · Low 1 철회 |
 | [2026-08-15](2026-08-15.md) | 비-git · 파일 내용 해시 (`DSSToROSImage.cpp` `7486c1cb…` 외 18개) | REQUEST CHANGES | Critical 1 (포인트클라우드 경계 검증 부재) · High 8 (퍼블리셔 순서 race, sprintf 오버플로, closure 타입 UB, start() 무시, 좀비 노드, package.xml 의존성 누락, unsubscribe 이중 해제, 9벌 골격 중복) |
 
