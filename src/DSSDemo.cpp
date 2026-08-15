@@ -1,4 +1,6 @@
 #include "DSS.VSSClient.h"
+#include "defaultGateway.h"
+#include <stdexcept>
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/image.hpp"
 #include "sensor_msgs/msg/imu.hpp"
@@ -11,9 +13,15 @@ class DssDemoController : public rclcpp::Node
     {
         RCLCPP_INFO(get_logger(), "DSS Demo Controller Started");
 
-        // VSS 초기화
+        // VSS 초기화. 접속 대상은 브리지 노드들과 같은 곳이어야 하므로 같은 출처를 쓴다.
         auto &vss = DSSVssClient::singleton();
-        vss.start("100.80.80.15", 8886, 4222);
+        const std::string dss_host = getDefaultGateway();
+        const natsStatus vss_status = vss.start(dss_host, 8886, 4222);
+        if (vss_status != NATS_OK) {
+            RCLCPP_FATAL(get_logger(), "DSS VSS 연결 실패 (%s): %s",
+                         dss_host.c_str(), natsStatus_GetText(vss_status));
+            throw std::runtime_error("DSS VSS 연결 실패");
+        }
 
         // 구독 QoS 는 브리지 노드의 발행 QoS(SensorDataQoS) 와 같아야 한다.
         // best-effort 발행자는 reliable 구독자와 연결되지 않는다(RxO: offered < requested).
@@ -25,7 +33,7 @@ class DssDemoController : public rclcpp::Node
 
         // ROS2 PCD 구독
         pointcloud_sub_ = create_subscription<sensor_msgs::msg::PointCloud2>(
-            "/dss/sensor/lidar", rclcpp::SensorDataQoS(),
+            "/dss/sensor/lidar3d", rclcpp::SensorDataQoS(),
             [this](sensor_msgs::msg::PointCloud2::SharedPtr msg) { this->last_cloud_ = *msg; });
 
         // ROS2 Image 구독 — 이미지 발행자만 reliable 이므로 여기도 reliable 로 맞춘다
@@ -127,7 +135,13 @@ class DssDemoController : public rclcpp::Node
 int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<DssDemoController>());
+    try {
+        rclcpp::spin(std::make_shared<DssDemoController>());
+    } catch (const std::exception &e) {
+        RCLCPP_FATAL(rclcpp::get_logger("DssDemoController"), "노드 기동 실패: %s", e.what());
+        rclcpp::shutdown();
+        return 1;
+    }
     rclcpp::shutdown();
     return 0;
 }

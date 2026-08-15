@@ -36,15 +36,9 @@ public:
 
 
 
-    // 구독 해제
-    static void unsubscribe(natsSubscription*& sub)
-    {
-        if (sub)
-        {
-            natsSubscription_Destroy(sub);
-            sub = nullptr;
-        }
-    }
+    // 구독 해제. 구독 핸들과 함께 그 구독이 소유한 콜백 클로저까지 회수한다 —
+    // 구독만 파괴하고 클로저 소유 맵에 항목을 남기면 stop() 이 같은 핸들을 다시 파괴한다.
+    static void unsubscribe(natsSubscription*& sub);
 
 private:
     DSSVssClient();

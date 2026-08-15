@@ -17,9 +17,9 @@ namespace {
     std::unordered_map<natsSubscription*, FnPtr> gClosures;
     std::unordered_map<natsSubscription*, FnRawPtr> gRawClosures;
 }
-DSSVssClient::DSSVssClient() {
-    start();
-}
+// 생성자는 연결하지 않는다. 연결 주소·포트는 start() 호출자가 정한다 —
+// 생성자가 기본 인자로 먼저 연결해 버리면 이후 start(...) 가 이미 연결됨으로 거절된다.
+DSSVssClient::DSSVssClient() = default;
 DSSVssClient::~DSSVssClient() {
     stop();
 }
@@ -172,22 +172,39 @@ void DSSVssClient::setDriveControl(float throttle, float steer, float brake)
 // ------------------------------
 // GET / SET / ACTION
 // ------------------------------
+namespace {
+    // VSS 요청 JSON 을 고정 버퍼에 조립한다. 인자는 호출자가 주는 임의 길이 문자열이므로
+    // 잘림을 검사해서 잘린 JSON 이 전송되는 것을 막는다.
+    constexpr size_t kVssJsonCap = 256;
+
+    bool buildVssJson(char (&out)[kVssJsonCap], const char* format, const char* a, const char* b = nullptr)
+    {
+        const int n = b ? snprintf(out, kVssJsonCap, format, a, b)
+                        : snprintf(out, kVssJsonCap, format, a);
+        return n >= 0 && static_cast<size_t>(n) < kVssJsonCap;
+    }
+}
+
 void DSSVssClient::get(const std::string& vssName,OnReply onReply,int64_t timeoutMs)
 {
-    char json[256];
-    sprintf(json, "{ \"VSSName\": \"%s\" }", vssName.c_str());
-
+    char json[kVssJsonCap];
+    if (!buildVssJson(json, "{ \"VSSName\": \"%s\" }", vssName.c_str())) {
+        std::cerr << "[VssClient] get: VSSName 이 요청 버퍼를 넘칩니다: " << vssName << std::endl;
+        if (onReply) onReply(NATS_INVALID_ARG, {});
+        return;
+    }
     requestAsync("VSS.Get", json, std::move(onReply), timeoutMs);
 }
 
 void DSSVssClient::set(const std::string& vssName,const std::string& value,OnResult onResult,int64_t timeoutMs)
 {
-    char json[256];
-
-    sprintf(json,
-        "{ \"VSSName\": \"%s\", \"Value\": \"%s\" }",
-        vssName.c_str(),
-        value.c_str());
+    char json[kVssJsonCap];
+    if (!buildVssJson(json, "{ \"VSSName\": \"%s\", \"Value\": \"%s\" }",
+                      vssName.c_str(), value.c_str())) {
+        std::cerr << "[VssClient] set: VSSName/Value 가 요청 버퍼를 넘칩니다: " << vssName << std::endl;
+        if (onResult) onResult(NATS_INVALID_ARG);
+        return;
+    }
 
     requestAsync("VSS.Set", json, [onResult](natsStatus st, const std::string&) {
         if (onResult) {
@@ -198,13 +215,13 @@ void DSSVssClient::set(const std::string& vssName,const std::string& value,OnRes
 
 void DSSVssClient::action(const std::string& vssName, const std::string& value,OnReply onReply,int64_t timeoutMs)
 {
-    char json[256];
-
-    sprintf(json,
-        "{ \"VSSName\": \"%s\", \"Value\": \"%s\" }",
-        vssName.c_str(),
-        value.c_str());
-
+    char json[kVssJsonCap];
+    if (!buildVssJson(json, "{ \"VSSName\": \"%s\", \"Value\": \"%s\" }",
+                      vssName.c_str(), value.c_str())) {
+        std::cerr << "[VssClient] action: VSSName/Value 가 요청 버퍼를 넘칩니다: " << vssName << std::endl;
+        if (onReply) onReply(NATS_INVALID_ARG, {});
+        return;
+    }
     requestAsync("VSS.Act", json, std::move(onReply), timeoutMs);
 }
 
@@ -237,7 +254,9 @@ void DSSVssClient::natsRawMsgThunk(natsConnection* /*nc*/,
     void* closure)
 {
     if (closure) {
-        auto* cb = reinterpret_cast<std::function<void(std::string, std::vector<uint8_t>)>*>(closure);
+        // closure 는 subscribe() 가 new 한 OnRawMessage*. 다른 시그니처의 std::function 으로
+        // 캐스팅해 호출하면 정의되지 않은 동작이므로 별칭 그대로 복원한다.
+        auto* cb = reinterpret_cast<OnRawMessage*>(closure);
         if (cb) {
             const char* subj = natsMsg_GetSubject(msg);
             const char* data = natsMsg_GetData(msg);
@@ -328,37 +347,36 @@ natsSubscription* DSSVssClient::subscribe(const std::string& subject, OnRawMessa
 
 
 // ------------------------------
-// Subscribe
+// Subscribe (센서용 별칭)
 // ------------------------------
 natsSubscription* DSSVssClient::subscribeSensor(const std::string& subject, OnRawMessage onMessage, natsStatus* outStatus)
 {
-    if (outStatus) *outStatus = NATS_OK;
-    if (conn == nullptr) {
-        if (outStatus) *outStatus = NATS_CONNECTION_CLOSED;
-        return nullptr;
-    }
-    auto* closure = new OnRawMessage(std::move(onMessage));
-    natsSubscription* sub = nullptr;
-    natsStatus s = natsConnection_Subscribe(
-        &sub,
-        conn,
-        subject.c_str(),
-        &DSSVssClient::natsRawMsgThunk,
-        closure
-    );
+    return subscribe(subject, std::move(onMessage), outStatus);
+}
 
-    if (s != NATS_OK) {
-        delete closure;
-        if (outStatus) *outStatus = s;
-        return nullptr;
-    }
+// ------------------------------
+// Unsubscribe
+// ------------------------------
+void DSSVssClient::unsubscribe(natsSubscription*& sub)
+{
+    if (!sub) return;
 
     {
         std::lock_guard<std::mutex> lock(gSubMx);
-        gRawClosures[sub] = closure;
+        auto it = gClosures.find(sub);
+        if (it != gClosures.end()) {
+            delete it->second;
+            gClosures.erase(it);
+        }
+        auto rit = gRawClosures.find(sub);
+        if (rit != gRawClosures.end()) {
+            delete rit->second;
+            gRawClosures.erase(rit);
+        }
     }
 
-    return sub;
+    natsSubscription_Destroy(sub);
+    sub = nullptr;
 }
 
 
