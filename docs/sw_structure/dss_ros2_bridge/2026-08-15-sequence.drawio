@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="claude" modified="2026-08-15T22:55:00.000Z" agent="dss_ros2_bridge-structure" version="21.0.0">
+  <diagram id="sequence" name="sequence">
+    <mxGraphModel dx="2900" dy="1940" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2900" pageHeight="1940" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="a_title" value="시나리오 A — 센서 브리지 (DSSToROSImageNode 대표, 나머지 8개 노드 동일 골격)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#666666;align=left;spacingLeft=10;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="1000" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="a_main" value="main()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;verticalAlign=top;spacingTop=6;dashed=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="110" width="200" height="800" as="geometry"/>
+        </mxCell>
+        <mxCell id="a_gw" value="getDefaultGateway()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;verticalAlign=top;spacingTop=6;dashed=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="660" y="220" width="200" height="150" as="geometry"/>
+        </mxCell>
+        <mxCell id="a_node" value="DSSToROSImageNode" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;verticalAlign=top;spacingTop=6;dashed=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="110" width="200" height="800" as="geometry"/>
+        </mxCell>
+        <mxCell id="a_nats" value="NATS 서버 (외부)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;verticalAlign=top;spacingTop=6;dashed=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1900" y="110" width="200" height="800" as="geometry"/>
+        </mxCell>
+        <mxCell id="a_pub" value="ROS2 Publisher" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;verticalAlign=top;spacingTop=6;dashed=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="2520" y="520" width="200" height="390" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1" value="1. 노드 생성 (make_shared)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;endArrow=classic;strokeColor=#333333;exitX=1;exitY=0.1125;exitDx=0;exitDy=0;entryX=0;entryY=0.1125;entryDx=0;entryDy=0;verticalAlign=bottom;labelBackgroundColor=none;fontSize=10;" edge="1" parent="1" source="a_main" target="a_node">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2" value="2. getDefaultGateway()" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;endArrow=classic;strokeColor=#333333;exitX=0;exitY=0.1875;exitDx=0;exitDy=0;entryX=1;entryY=0.2667;entryDx=0;entryDy=0;verticalAlign=bottom;labelBackgroundColor=none;fontSize=10;" edge="1" parent="1" source="a_node" target="a_gw">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3" value="3. 반환 100.80.80.15 (하드코딩)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;endArrow=open;dashed=1;strokeColor=#5b5b5b;exitX=1;exitY=0.6667;exitDx=0;exitDy=0;entryX=0;entryY=0.2625;entryDx=0;entryDy=0;verticalAlign=bottom;labelBackgroundColor=none;fontSize=10;" edge="1" parent="1" source="a_gw" target="a_node">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4" value="4. natsConnection_ConnectTo(:4222)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;endArrow=classic;strokeColor=#333333;exitX=1;exitY=0.3375;exitDx=0;exitDy=0;entryX=0;entryY=0.3375;entryDx=0;entryDy=0;verticalAlign=bottom;labelBackgroundColor=none;fontSize=10;" edge="1" parent="1" source="a_node" target="a_nats">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5" value="5. create_wall_timer(3s, onTick)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;endArrow=classic;strokeColor=#333333;exitX=1;exitY=0.4125;exitDx=0;exitDy=0;entryX=1;entryY=0.4575;entryDx=0;entryDy=0;verticalAlign=bottom;labelBackgroundColor=none;fontSize=10;align=left;spacingLeft=8;" edge="1" parent="1" source="a_node" target="a_node">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e6" value="6. subscribeTopicRaw(dss.sensor.camera.rgb)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;endArrow=classic;strokeColor=#333333;exitX=1;exitY=0.4875;exitDx=0;exitDy=0;entryX=0;entryY=0.4875;entryDx=0;entryDy=0;verticalAlign=bottom;labelBackgroundColor=none;fontSize=10;" edge="1" parent="1" source="a_node" target="a_nats">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e7" value="7. create_publisher(/dss/sensor/camera/rgb)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;endArrow=classic;strokeColor=#333333;exitX=1;exitY=0.5625;exitDx=0;exitDy=0;entryX=0;entryY=0.1026;entryDx=0;entryDy=0;verticalAlign=bottom;labelBackgroundColor=none;fontSize=10;" edge="1" parent="1" source="a_node" target="a_pub">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e8" value="8. rclcpp::spin - 이하 런타임 반복" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;endArrow=classic;strokeColor=#333333;exitX=1;exitY=0.6375;exitDx=0;exitDy=0;entryX=0;entryY=0.6375;entryDx=0;entryDy=0;verticalAlign=bottom;labelBackgroundColor=none;fontSize=10;" edge="1" parent="1" source="a_main" target="a_node">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e9" value="9. sOnTopicRaw(natsMsg) [NATS 스레드]" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;endArrow=classic;strokeColor=#333333;exitX=0;exitY=0.7125;exitDx=0;exitDy=0;entryX=1;entryY=0.7125;entryDx=0;entryDy=0;verticalAlign=bottom;labelBackgroundColor=none;fontSize=10;" edge="1" parent="1" source="a_nats" target="a_node">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e10" value="10. ParseFromArray + createImage (JPEG 디코드)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;endArrow=classic;strokeColor=#333333;exitX=1;exitY=0.7875;exitDx=0;exitDy=0;entryX=1;entryY=0.8325;entryDx=0;entryDy=0;verticalAlign=bottom;labelBackgroundColor=none;fontSize=10;align=left;spacingLeft=8;" edge="1" parent="1" source="a_node" target="a_node">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e11" value="11. publish(sensor_msgs Image)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;endArrow=classic;strokeColor=#333333;exitX=1;exitY=0.8625;exitDx=0;exitDy=0;entryX=0;entryY=0.7179;entryDx=0;entryDy=0;verticalAlign=bottom;labelBackgroundColor=none;fontSize=10;" edge="1" parent="1" source="a_node" target="a_pub">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e12" value="12. publishHeartBeat (3초 주기)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;endArrow=classic;strokeColor=#333333;exitX=1;exitY=0.9375;exitDx=0;exitDy=0;entryX=0;entryY=0.9375;entryDx=0;entryDy=0;verticalAlign=bottom;labelBackgroundColor=none;fontSize=10;" edge="1" parent="1" source="a_node" target="a_nats">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="b_title" value="시나리오 B — 제어 경로 (DssDemoController → DSS 서버 UDP)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#666666;align=left;spacingLeft=10;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1020" width="1000" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="b_main" value="main()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;verticalAlign=top;spacingTop=6;dashed=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1090" width="200" height="700" as="geometry"/>
+        </mxCell>
+        <mxCell id="b_demo" value="DssDemoController" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;verticalAlign=top;spacingTop=6;dashed=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="660" y="1090" width="200" height="700" as="geometry"/>
+        </mxCell>
+        <mxCell id="b_vss" value="DSSVssClient (singleton)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;verticalAlign=top;spacingTop=6;dashed=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="1090" width="200" height="700" as="geometry"/>
+        </mxCell>
+        <mxCell id="b_srv" value="DSS 서버 (NATS 4222 / UDP 8886)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;verticalAlign=top;spacingTop=6;dashed=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1900" y="1090" width="200" height="700" as="geometry"/>
+        </mxCell>
+        <mxCell id="e13" value="1. 노드 생성 (make_shared)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;endArrow=classic;strokeColor=#333333;exitX=1;exitY=0.1286;exitDx=0;exitDy=0;entryX=0;entryY=0.1286;entryDx=0;entryDy=0;verticalAlign=bottom;labelBackgroundColor=none;fontSize=10;" edge="1" parent="1" source="b_main" target="b_demo">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e14" value="2. DSSVssClient::singleton()" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;endArrow=classic;strokeColor=#333333;exitX=1;exitY=0.2143;exitDx=0;exitDy=0;entryX=0;entryY=0.2143;entryDx=0;entryDy=0;verticalAlign=bottom;labelBackgroundColor=none;fontSize=10;" edge="1" parent="1" source="b_demo" target="b_vss">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e15" value="3. 생성자에서 start(172.25.96.1) 자동 호출" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;endArrow=classic;strokeColor=#333333;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=1;entryY=0.345;entryDx=0;entryDy=0;verticalAlign=bottom;labelBackgroundColor=none;fontSize=10;align=left;spacingLeft=8;" edge="1" parent="1" source="b_vss" target="b_vss">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e16" value="4. natsConnection_Connect + UDP socket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;endArrow=classic;strokeColor=#333333;exitX=1;exitY=0.3857;exitDx=0;exitDy=0;entryX=0;entryY=0.3857;entryDx=0;entryDy=0;verticalAlign=bottom;labelBackgroundColor=none;fontSize=10;" edge="1" parent="1" source="b_vss" target="b_srv">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e17" value="5. start(100.80.80.15, 8886, 4222)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;endArrow=classic;strokeColor=#333333;exitX=1;exitY=0.4714;exitDx=0;exitDy=0;entryX=0;entryY=0.4714;entryDx=0;entryDy=0;verticalAlign=bottom;labelBackgroundColor=none;fontSize=10;" edge="1" parent="1" source="b_demo" target="b_vss">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e18" value="6. NATS_ERR - 이미 연결됨, IP 반영 안 됨" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;endArrow=open;dashed=1;strokeColor=#5b5b5b;exitX=0;exitY=0.5571;exitDx=0;exitDy=0;entryX=1;entryY=0.5571;entryDx=0;entryDy=0;verticalAlign=bottom;labelBackgroundColor=none;fontSize=10;" edge="1" parent="1" source="b_vss" target="b_demo">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e19" value="7. create_subscription x3 (imu/lidar/rgb)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;endArrow=classic;strokeColor=#333333;exitX=1;exitY=0.6429;exitDx=0;exitDy=0;entryX=1;entryY=0.6879;entryDx=0;entryDy=0;verticalAlign=bottom;labelBackgroundColor=none;fontSize=10;align=left;spacingLeft=8;" edge="1" parent="1" source="b_demo" target="b_demo">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e20" value="8. create_wall_timer(20ms)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;endArrow=classic;strokeColor=#333333;exitX=1;exitY=0.7286;exitDx=0;exitDy=0;entryX=1;entryY=0.7736;entryDx=0;entryDy=0;verticalAlign=bottom;labelBackgroundColor=none;fontSize=10;align=left;spacingLeft=8;" edge="1" parent="1" source="b_demo" target="b_demo">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e21" value="9. setDriveControl(0, 0, 0) 주기 호출" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;endArrow=classic;strokeColor=#333333;exitX=1;exitY=0.8143;exitDx=0;exitDy=0;entryX=0;entryY=0.8143;entryDx=0;entryDy=0;verticalAlign=bottom;labelBackgroundColor=none;fontSize=10;" edge="1" parent="1" source="b_demo" target="b_vss">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e22" value="10. sendto(DssSetControl 직렬화)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;endArrow=classic;strokeColor=#333333;exitX=1;exitY=0.9;exitDx=0;exitDy=0;entryX=0;entryY=0.9;entryDx=0;entryDy=0;verticalAlign=bottom;labelBackgroundColor=none;fontSize=10;" edge="1" parent="1" source="b_vss" target="b_srv">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="lg" value="범례:  실선 = 호출(call)   |   점선 = 반환(return)   |   세로 점선 박스 = 참여자 lifeline" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;align=left;spacingLeft=8;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1860" width="1400" height="40" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
