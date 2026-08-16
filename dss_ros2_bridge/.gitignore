@@ -1,0 +1,18 @@
+# ROS2 build artifacts
+build/
+install/
+log/
+
+# VSCode settings
+.vscode/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Backup files
+*.swp
+*.swo
+
+# OMC 런타임 상태 (비추적)
+.omc/
