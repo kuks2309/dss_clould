@@ -86,6 +86,32 @@ def generate_launch_description():
             output='screen',
             parameters=[common_params],
         ),
+
+        # GPS Front (듀얼 안테나 전방)
+        Node(
+            package='dss_ros2_bridge',
+            executable='DSSToROSGpsNode',
+            name='GPSFront',
+            output='screen',
+            parameters=[common_params, {
+                "nats_subject": "dss.sensor.gps.front",
+                "ros_topic": "/dss/sensor/gps/front/fix",
+                "heartbeat_subject": "dss.dssToROSGpsFront.heartBeat",
+            }],
+        ),
+
+        # GPS Rear (듀얼 안테나 후방)
+        Node(
+            package='dss_ros2_bridge',
+            executable='DSSToROSGpsNode',
+            name='GPSRear',
+            output='screen',
+            parameters=[common_params, {
+                "nats_subject": "dss.sensor.gps.rear",
+                "ros_topic": "/dss/sensor/gps/rear/fix",
+                "heartbeat_subject": "dss.dssToROSGpsRear.heartBeat",
+            }],
+        ),
         
         # Clock (필요하면 활성화)
         Node(

@@ -10,10 +10,14 @@ class DSSToROSGpsNode : public DssBridgeNode
 public:
     DSSToROSGpsNode() : DssBridgeNode("DSSToROSGpsNode", "dss.dssToROSGps.heartBeat")
     {
-        pub_ = create_publisher<sensor_msgs::msg::NavSatFix>("/dss/sensor/gps/fix",
-                                                             rclcpp::SensorDataQoS());
+        // 같은 실행파일로 GPS·GPSFront·GPSRear 3 인스턴스를 띄운다(launch 파라미터로 구분).
+        // 기본값 = 종전 단일 GPS 동작.
+        const auto ros_topic    = declare_parameter("ros_topic", std::string("/dss/sensor/gps/fix"));
+        const auto nats_subject = declare_parameter("nats_subject", std::string("dss.sensor.gps"));
 
-        subscribeTopicRaw("dss.sensor.gps",
+        pub_ = create_publisher<sensor_msgs::msg::NavSatFix>(ros_topic, rclcpp::SensorDataQoS());
+
+        subscribeTopicRaw(nats_subject,
             [this](const std::string&, const char* bytes, int len)
             {
                 dss::DSSGPS gps_msg;
@@ -24,7 +28,7 @@ public:
                 pub_->publish(createNavSatFix(gps_msg));
             });
 
-        RCLCPP_INFO(get_logger(), "[NATS]dss.sensor.gps → [ROS2]/dss/sensor/gps/fix");
+        RCLCPP_INFO(get_logger(), "[NATS]%s → [ROS2]%s", nats_subject.c_str(), ros_topic.c_str());
     }
 
 private:

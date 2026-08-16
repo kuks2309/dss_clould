@@ -10,15 +10,33 @@
 namespace {
     /// DSS 가 NATS 를 여는 포트.
     constexpr int kNatsPort = 4222;
+    /// 연결 상실 후 재연결 시도 간격.
+    constexpr int kReconnectWaitMs = 2000;
 }
 
 DssBridgeNode::DssBridgeNode(const std::string& node_name, const std::string& heartbeat_subject)
-    : rclcpp::Node(node_name), heartbeat_subject_(heartbeat_subject)
+    : rclcpp::Node(node_name)
 {
+    // 파라미터가 생성자 인자를 덮을 수 있다 — 같은 실행파일을 launch 에서
+    // 여러 인스턴스로 띄울 때 인스턴스별 heartbeat 를 구분하기 위함.
+    heartbeat_subject_ = declare_parameter("heartbeat_subject", heartbeat_subject);
+
     const std::string nats_url = "nats://" + getDefaultGateway() + ":" + std::to_string(kNatsPort);
     RCLCPP_INFO(get_logger(), "%s", nats_url.c_str());
 
-    const natsStatus s = natsConnection_ConnectTo(&conn_, nats_url.c_str());
+    // 최초 연결은 fail-fast(연결 없이 살아 있는 노드 금지 계약). 연결 수립 후
+    // 서버가 내려가면 무제한 재시도 — 시뮬레이터 재시작(수 분~수 시간)을 넘겨야 한다.
+    // nats.c 기본값(60회 후 포기)은 밤사이 재시작에서 브리지 전멸을 실측시켰다.
+    natsOptions* opts = nullptr;
+    natsStatus s = natsOptions_Create(&opts);
+    if (s == NATS_OK) s = natsOptions_SetURL(opts, nats_url.c_str());
+    if (s == NATS_OK) s = natsOptions_SetMaxReconnect(opts, -1);
+    if (s == NATS_OK) s = natsOptions_SetReconnectWait(opts, kReconnectWaitMs);
+    if (s == NATS_OK) s = natsOptions_SetDisconnectedCB(opts, sOnDisconnected, this);
+    if (s == NATS_OK) s = natsOptions_SetReconnectedCB(opts, sOnReconnected, this);
+    if (s == NATS_OK) s = natsConnection_Connect(&conn_, opts);
+    natsOptions_Destroy(opts);
+
     if (s != NATS_OK) {
         RCLCPP_FATAL(get_logger(), "NATS 연결 실패 (%s): %s",
                      nats_url.c_str(), natsStatus_GetText(s));
@@ -27,6 +45,18 @@ DssBridgeNode::DssBridgeNode(const std::string& node_name, const std::string& he
 
     heartbeat_timer_ = create_wall_timer(kHeartbeatPeriod,
                                          std::bind(&DssBridgeNode::onTick, this));
+}
+
+void DssBridgeNode::sOnDisconnected(natsConnection*, void* closure)
+{
+    auto* self = static_cast<DssBridgeNode*>(closure);
+    RCLCPP_WARN(self->get_logger(), "NATS 연결 끊김 — %d ms 간격 무제한 재연결 대기", kReconnectWaitMs);
+}
+
+void DssBridgeNode::sOnReconnected(natsConnection*, void* closure)
+{
+    auto* self = static_cast<DssBridgeNode*>(closure);
+    RCLCPP_INFO(self->get_logger(), "NATS 재연결 완료 — 구독은 라이브러리가 자동 복구");
 }
 
 DssBridgeNode::~DssBridgeNode()

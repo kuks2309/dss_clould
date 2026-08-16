@@ -50,6 +50,8 @@ private:
     struct TopicCtx { TopicHandler* fn; };
 
     static void sOnTopicRaw(natsConnection* nc, natsSubscription* sub, natsMsg* msg, void* closure);
+    static void sOnDisconnected(natsConnection* nc, void* closure);
+    static void sOnReconnected(natsConnection* nc, void* closure);
     static std::string currentTimeIso8601();
 
     void onTick();
