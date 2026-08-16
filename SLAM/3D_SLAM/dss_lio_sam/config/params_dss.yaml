@@ -1,0 +1,100 @@
+# LIO-SAM 파라미터 — DSS 시뮬레이터 (dss_ros2_bridge 스트림)
+#
+# 원본 params_slam_gazebo.yaml 을 DSS 실측(2026-08-16, nats://100.80.80.15:4222)으로 개조.
+# 실측 근거: docs/code_review/slam3d/2026-08-16.md §실측
+/**:
+  ros__parameters:
+
+    # ── 토픽 (dss_ros2_bridge 발행) ──────────────────────────────
+    pointCloudTopic: "/dss/sensor/lidar3d"       # PointCloud2 · 10.00 Hz 실측
+    imuTopic: "/dss/sensor/imu_gravity"          # 중력 합성 노드 출력 (원본: /dss/sensor/imu)
+                                                 # use_imu_gravity:=false 시 launch 가 원본으로 덮는다
+    odomTopic: "odometry/imu"
+    gpsTopic: "odometry/gpsz"                    # navsat 변환 노드 없음 — 미사용 (useImuHeading… false)
+
+    # ── 프레임 ───────────────────────────────────────────────────
+    lidarFrame: "lidar_link"                     # 브리지 발행 frame_id 실측
+    baselinkFrame: "base_link"
+    odometryFrame: "odom"
+    mapFrame: "map"
+
+    # ── GPS ─────────────────────────────────────────────────────
+    useImuHeadingInitialization: false
+    useGpsElevation: false
+    gpsCovThreshold: 2.0                         # m^2
+    poseCovThreshold: 25.0                       # m^2
+
+    # ── 지도 저장 ────────────────────────────────────────────────
+    savePCD: true
+    # 주의: 원본 LIO-SAM 은 이 값 앞에 $HOME 을 무조건 붙인다 (mapOptmization.cpp:602,
+    # saveMapService). 절대경로를 주면 /home/amap/home/amap/... 로 깨진다 — HOME-상대로 쓴다.
+    savePCDDirectory: "/Project/Divine/maps/lio_sam/"             # 실제 저장: $HOME + 이 값
+
+    # ── Localization (SLAM 모드에서는 비활성) ─────────────────────
+    localizationMode: false
+    globalMapPath: ""
+
+    # ── 센서 (DSS 라이다 실측) ───────────────────────────────────
+    sensor: velodyne                             # 필드 x,y,z,intensity,ring(uint16),time(float32) 실측
+    N_SCAN: 16                                   # ring 실측 0~15 (수직 +15.0°~-25.0°, 2.667° 등간격)
+    Horizon_SCAN: 500                            # ring 당 최대 500점 실측 (360°/500 = 0.72°)
+    downsampleRate: 1
+    lidarMinRange: 0.5                           # m — 실측 최소 4.75 m. 원본 기본 5.5 는 유효점을 버린다
+    lidarMaxRange: 100.0                         # m — 실측 최대 99.69, 브리지 역양자화 상한과 일치
+
+    # ── IMU (DSS 200 Hz 실측 · 노이즈 스펙 없음 → Gazebo 값 유지) ─
+    imuAccNoise: 0.01                            # m/s^2/sqrt(Hz) — DSS 스펙 미공개, Gazebo 프로파일 유지
+    imuGyrNoise: 0.001                           # rad/s/sqrt(Hz)
+    imuAccBiasN: 0.0001
+    imuGyrBiasN: 0.0001
+    imuGravity: 9.80511                          # m/s^2 — 중력 합성 노드의 g 와 같아야 한다
+    imuRPYWeight: 0.01
+
+    # ── 외부 파라미터 (가정 — 측정값 아님, ADR D4·debt 참조) ──────
+    # DSS 는 센서 장착 오프셋을 내보내지 않는다. 확인되면 여기를 실측으로 바꾼다.
+    extrinsicTrans: [ 0.0,  0.0,  0.0 ]          # m, base_link→lidar
+    extrinsicRot: [ 1.0,  0.0,  0.0,
+                    0.0,  1.0,  0.0,
+                    0.0,  0.0,  1.0 ]
+    extrinsicRPY: [ 1.0,  0.0,  0.0,
+                    0.0,  1.0,  0.0,
+                    0.0,  0.0,  1.0 ]
+
+    # ── LOAM 특징 추출 ───────────────────────────────────────────
+    edgeThreshold: 1.0
+    surfThreshold: 0.1
+    edgeFeatureMinValidNum: 10
+    surfFeatureMinValidNum: 100
+
+    # ── 복셀 필터 ────────────────────────────────────────────────
+    odometrySurfLeafSize: 0.2                    # m
+    mappingCornerLeafSize: 0.1                   # m
+    mappingSurfLeafSize: 0.2                     # m
+
+    # ── 자세 구속 ────────────────────────────────────────────────
+    z_tollerance: 1000.0                         # m (사실상 비활성)
+    rotation_tollerance: 1000.0                  # rad (사실상 비활성)
+
+    # ── CPU ─────────────────────────────────────────────────────
+    numberOfCores: 4
+    mappingProcessInterval: 0.15                 # s
+
+    # ── 주변 키프레임 ────────────────────────────────────────────
+    surroundingkeyframeAddingDistThreshold: 1.0  # m
+    surroundingkeyframeAddingAngleThreshold: 0.2 # rad
+    surroundingKeyframeDensity: 2.0              # m
+    surroundingKeyframeSearchRadius: 50.0        # m
+
+    # ── 루프 클로저 ──────────────────────────────────────────────
+    loopClosureEnableFlag: true
+    loopClosureFrequency: 1.0                    # Hz
+    surroundingKeyframeSize: 50
+    historyKeyframeSearchRadius: 15.0            # m
+    historyKeyframeSearchTimeDiff: 30.0          # s
+    historyKeyframeSearchNum: 25
+    historyKeyframeFitnessScore: 0.3
+
+    # ── 시각화 ───────────────────────────────────────────────────
+    globalMapVisualizationSearchRadius: 1000.0   # m
+    globalMapVisualizationPoseDensity: 10.0
+    globalMapVisualizationLeafSize: 1.0          # m
