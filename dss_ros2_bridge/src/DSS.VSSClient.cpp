@@ -146,7 +146,7 @@ void DSSVssClient::requestAsync(const std::string& subject, const std::string& p
 }
 
 
-void DSSVssClient::setDriveControl(float throttle, float steer, float brake) 
+void DSSVssClient::setDriveControl(float throttle, float steer, float brake, float targetGear)
 {
     if (udp_socket_ < 0) {
         std::cerr << "[VssClient] UDP socket not initialized!\n";
@@ -159,6 +159,7 @@ void DSSVssClient::setDriveControl(float throttle, float steer, float brake)
     ctrl.set_throttle(throttle);
     ctrl.set_brake(brake);
     ctrl.set_steer(steer);
+    ctrl.set_targetgear(targetGear); // -1=후진 (DSS 실측 확정) · 0 은 proto3 직렬화에서 생략됨
 
     std::string buffer;
     ctrl.SerializeToString(&buffer);

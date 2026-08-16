@@ -89,6 +89,11 @@ add_dss_node(DSSDemoNode
   SOURCES src/DSSDemo.cpp src/DSS.VSSClient.cpp
   DEPS rclcpp sensor_msgs)
 
+# /dss/control 토픽을 DSS UDP 제어(:8886)로 전달하는 수신 노드 (jog GUI 등 발행자의 수신측).
+add_dss_node(DSSControlNode
+  SOURCES src/DSSControlNode.cpp src/DSS.VSSClient.cpp
+  DEPS rclcpp)
+
 
 # ===============================
 # 설치
@@ -106,6 +111,7 @@ install(
     DSSToROSStereoCameraInfra1Node
     DSSToROSStereoCameraInfra2Node
     DSSDemoNode
+    DSSControlNode
     ${cpp_typesupport_target}        # ← ★ 추가! typesupport .so 설치
   DESTINATION lib/${PROJECT_NAME}
 )
