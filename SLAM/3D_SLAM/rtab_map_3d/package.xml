@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>rtab_map_3d_config</name>
+  <version>0.1.0</version>
+  <description>RTAB-Map 3D SLAM 설정 패키지 — DSS 시뮬레이터 3D 라이다 (dss_ros2_bridge 스트림)</description>
+  <maintainer email="kukwonko@gmail.com">amap</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- DSS 개조에서 제거된 원본 의존: astra_camera·livox_ros_driver2 (DSS 에 없는 하드웨어),
+       launch_utils (원본 워크스페이스 전용), rtabmap_launch (include 안 함) -->
+  <exec_depend>rtabmap_odom</exec_depend>
+  <exec_depend>rtabmap_slam</exec_depend>
+  <exec_depend>rtabmap_util</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+
+  <!-- 런타임 필수 외부 노드: dss_ros2_bridge (라이다 토픽 공급).
+       rosdep 키가 없는 로컬 패키지라 depend 로 선언하지 않는다 — 부재 시
+       icp_odometry 가 스캔 0장으로 대기한다 (기동은 됨). -->
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
