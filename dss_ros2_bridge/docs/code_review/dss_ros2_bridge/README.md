@@ -1,9 +1,10 @@
 # dss_ros2_bridge — 코드 리뷰 타임라인
 
-대상: `src/dss_ros2_bridge` (ROS 2 Humble, ament_cmake, 실행 타깃 10개)
+대상: `src/dss_ros2_bridge` (ROS 2 Humble, ament_cmake, 실행 타깃 11개)
 
 | 날짜 | 코드 버전 | Verdict | 핵심 |
 | --- | --- | --- | --- |
+| [2026-08-16 jog](2026-08-16-jog-control.md) (coding 계획 표) | `DSSControlNode.cpp` 신규 + CMakeLists 타깃 추가 | — (리뷰 아님) | `/dss/control` 구독 → UDP :8886 전달 노드 신설(함수 #36~38, dead-man 500 ms). 검증·이력: `docs/code_updates/2026-08-16-jog-control.md` |
 | [2026-08-16 08:30](2026-08-16-0830.md) (delta) | `DssBridgeNode.h` `99c75bfa…` 신규 4파일 + 노드 9개 재작성 | COMMENT | **High #8 해소.** 골격을 `DssBridgeNode` 로 추출 — 노드 9개 1,755줄 → 565줄(+공통 272줄, 52% 감소). 동작 보존 11항목 대조 통과. **미해결 High 0** |
 | [2026-08-16 08:15](2026-08-16-0815.md) (delta) | `DSSToROSImage.cpp` `1a1acff8…` 외 14개 변경 | REQUEST CHANGES | **리뷰 지적 반영.** High 7 + 신규 High 1 + Medium 5 `[해결]` — 퍼블리셔 순서 race · sprintf · closure UB · start() 무시 · 좀비 노드 · package.xml · unsubscribe · 쿼터니언 정규화. High 1(9벌 골격 중복) `[잔존]` → 08:30 에 해소 |
 | [2026-08-16](2026-08-16.md) (delta) | `DSSToROSImage.cpp` `16ab80eb…` 외 9개 변경 | REQUEST CHANGES | **실기 구동 delta.** 신규 High 2 (IMU 쿼터니언 norm 0.707 비정규화 발행, 스테레오 4개 노드의 원천 subject 부재) · QoS `[해결]` · Critical 1 → Medium 재평가 · Low 1 철회 |
