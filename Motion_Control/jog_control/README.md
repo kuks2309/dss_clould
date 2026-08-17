@@ -1,12 +1,20 @@
 # jog_control — DSS 차량 수동 조작(jog) Qt5 GUI
 
-`/dss/control` (dss_ros2_bridge/DssControl) 을 20 Hz 로 상시 발행하는 조그 패드.
-버튼·키를 누르는 동안만 명령이 실리고 떼면 0 (dead-man). 토픽 수신·UDP 전달은
-dss_ros2_bridge 의 `DSSControlNode` 가 담당한다.
+**조그 Enable 토글**이 켜진 동안만 `/dss/control/jog` (dss_ros2_bridge/DssControl) 를 20 Hz 로
+상시 발행하는 조그 패드. 버튼·키를 누르는 동안만 명령이 실리고 떼면 0 (dead-man).
+Enable OFF 면 발행을 전면 중단하고 제어권을 `/dss/control`(자율 노드, 예: dss_motion_control)에
+넘긴다 — 소스 선택은 수신측 `DSSControlNode` 가 `/dss/jog_enabled` (latched Bool) 로 판정한다
+([ADR jog-enable-mux](docs/adr/2026-08-17-jog-enable-mux.md)).
 
+```text
+[JogControlNode(GUI)] --/dss/control/jog (20 Hz, ON 일 때만)--┐
+                      --/dss/jog_enabled (Bool, latched)-----→[DSSControlNode(mux)] --UDP :8886--> DSS
+[자율 노드(tracking 등)] --/dss/control (상시)----------------┘   (enable=true → jog · false → auto)
 ```
-[JogControlNode(GUI)] --/dss/control (20 Hz, reliable)--> [DSSControlNode] --UDP :8886--> DSS
-```
+
+- **Enable 기본값 OFF** — 자율 주행 중 GUI 를 띄워도 제어권을 뺏지 않는다. [조그 OFF — 클릭하여 활성화] 버튼을 눌러야 조작 가능.
+- ON→OFF 전환 시 0 명령 1회 발행 후 침묵. GUI 정상 종료 시 enable=false 를 발행해 자율로 복귀시킨다.
+- Enable ON 중 GUI 가 죽으면 수신측은 자율로 폴백하지 않고 dead-man(500 ms) 으로 0 명령(정지) — 복귀는 GUI 재실행 후 OFF 또는 수신측 재기동.
 
 ## 실행
 
@@ -34,6 +42,7 @@ GUI 를 닫으면 버튼으로 띄운 수신 노드도 함께 정리된다(외�
 
 - Throttle 상한·Steer 강도는 슬라이더로 조절 (기본 0.30 / 0.50).
 - 상태줄의 "수신 노드 N" 이 1 이상이어야 명령이 차량까지 전달된다.
+- waypoint 등록·관리는 본 GUI 소관이 아니다 — `dss_motion_control` 의 `waypoint_ui` 를 사용한다.
 
 ## 주의
 

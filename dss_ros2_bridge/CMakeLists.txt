@@ -14,6 +14,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(rosgraph_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 
 find_package(OpenCV REQUIRED)
 find_package(Protobuf 3.15 REQUIRED)
@@ -89,10 +90,11 @@ add_dss_node(DSSDemoNode
   SOURCES src/DSSDemo.cpp src/DSS.VSSClient.cpp
   DEPS rclcpp sensor_msgs)
 
-# /dss/control 토픽을 DSS UDP 제어(:8886)로 전달하는 수신 노드 (jog GUI 등 발행자의 수신측).
+# 명령 토픽(/dss/control 자율 · /dss/control/jog 수동)을 /dss/jog_enabled 로 선택해
+# DSS UDP 제어(:8886)로 전달하는 수신 노드이자 제어 소스 mux.
 add_dss_node(DSSControlNode
   SOURCES src/DSSControlNode.cpp src/DSS.VSSClient.cpp
-  DEPS rclcpp)
+  DEPS rclcpp std_msgs)
 
 
 # ===============================
