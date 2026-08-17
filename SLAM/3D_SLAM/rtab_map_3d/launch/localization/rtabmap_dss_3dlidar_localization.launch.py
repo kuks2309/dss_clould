@@ -59,11 +59,19 @@ def generate_launch_description():
             'wait_for_transform': 0.2,       # s
             'approx_sync': True,
             'queue_size': 10,
-            'Odom/ResetCountdown': '3',
+            'Odom/ResetCountdown': '1',
             'Icp/VoxelSize': '0.1',                  # m
             'Icp/MaxCorrespondenceDistance': '0.5',  # m
-            'Icp/RangeMax': '20.0',                  # m
+            # DSS 스캔은 근거리의 62%가 지면 링 — 20 m 컷이면 지면 평면만 남아
+            # complexity ≈0 으로 키프레임 거부. 벽점 확보에 80 m 필요 (SLAM launch 동일).
+            'Icp/RangeMax': '80.0',                  # m
             'Icp/RangeMin': '0.3',                   # m
+            'Icp/PointToPlaneMinComplexity': '0.0',
+            # 프레임당 이동 상한 — 기본 0.2 m 는 2 m/s 상한이라 DSS 주행 속도에서
+            # 정합 성공분까지 기각된다 (SLAM launch 동일).
+            'Icp/MaxTranslation': '3.0',
+            # 평지 전제 — z/피치 드리프트 차단 (SLAM launch 동일)
+            'Reg/Force3DoF': 'true',
             'Icp/Iterations': '30',
             'Icp/Epsilon': '0.001',
             'Icp/PointToPlane': 'true',
@@ -100,7 +108,9 @@ def generate_launch_description():
             # Localization 모드 — 지도를 늘리지 않는다
             'Mem/IncrementalMemory': 'false',
             'Mem/InitWMWithAllNodes': 'true',
-            'RGBD/StartAtOrigin': 'false',
+            # DSS 리셋 = 차량이 지도 원점(매핑 시작점)으로 복귀하는 워크플로 —
+            # false(DB 마지막 자세에서 시작)면 리셋 직후 추정이 매핑 종료 지점(수백 m 오차)
+            'RGBD/StartAtOrigin': 'true',
             # 재방문 정합
             'RGBD/ProximityBySpace': 'true',
             'RGBD/ProximityOdomGuess': 'true',
@@ -109,7 +119,7 @@ def generate_launch_description():
             'RGBD/AngularUpdate': '0.05',    # rad
             'RGBD/LinearUpdate': '0.05',     # m
             'Reg/Strategy': '1',             # ICP 전용
-            'Reg/Force3DoF': 'false',
+            'Reg/Force3DoF': 'true',         # 평지 전제 — 오돔 측과 일치
             'Grid/RangeMax': '20.0',         # m
             'Grid/RangeMin': '0.3',          # m
             'Grid/CellSize': '0.1',          # m
