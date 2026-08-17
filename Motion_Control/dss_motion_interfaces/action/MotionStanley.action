@@ -1,0 +1,22 @@
+# MotionStanley — DSS 차량 Stanley 경로 추종 (전륜축 기준)
+nav_msgs/Path path               # map 좌표 웨이포인트 경로
+float64 max_linear_speed         # m/s
+float64 acceleration             # m/s^2
+float64 k_stanley                # 횡오차 이득 (0 = 노드 기본값)
+float64 k_soft                   # 저속 연화 이득 (0 = 노드 기본값)
+float64 goal_tolerance           # m (0 = 노드 기본값)
+float64[] point_speeds           # path.poses 와 정렬된 지점별 목표 속도 (빈 배열 = max 균일)
+---
+int8    status                   # 0=성공, -1=취소, -2=무효, -3=타임아웃/측위상실, -4=안전
+float64 actual_distance
+float64 final_cross_track_error
+float64 elapsed_time
+---
+float64 current_distance
+float64 remaining_distance
+float64 cross_track_error
+float64 heading_error
+float64 current_speed
+float64 steer_command            # 정규화 조향 명령 [-1,1]
+uint32  current_waypoint_index
+uint32  total_waypoints
