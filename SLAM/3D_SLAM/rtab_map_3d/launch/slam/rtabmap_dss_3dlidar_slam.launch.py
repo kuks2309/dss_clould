@@ -73,11 +73,23 @@ def generate_launch_description():
             'wait_for_transform': 0.2,       # s
             'approx_sync': True,
             'queue_size': 10,
-            'Odom/ResetCountdown': '3',
+            'Odom/ResetCountdown': '1',
+            # 프레임당 이동 상한. 기본 0.2 m 는 10 Hz 에서 2 m/s 상한이라 DSS 주행 속도
+            # (5~6 m/s, 프레임당 ~0.6 m)에서 정합 성공(ratio 0.85+)조차 기각돼 오돔이
+            # 끊긴다. 30 m/s 상당까지 허용.
+            'Icp/MaxTranslation': '3.0',
             'Icp/VoxelSize': '0.1',                  # m
             'Icp/MaxCorrespondenceDistance': '0.5',  # m
-            'Icp/RangeMax': '20.0',                  # m — 16채널 0.72° 간격이라 원거리는 희박
+            # DSS 스캔은 근거리의 62%가 지면 링 — 20 m 로 자르면 지면 평면만 남아
+            # PointToPlane complexity ≈ 0 → 키프레임 생성 거부. 벽점 확보에 80 m 필요.
+            'Icp/RangeMax': '80.0',                  # m
             'Icp/RangeMin': '0.3',                   # m
+            # 개활 구간에서 complexity 가 일시 하락해도 오돔이 멎지 않도록 게이트 해제
+            # (종방향 퇴화 위험 감수 — 본 협곡에서 NDT·LIO-SAM 추종 실측 사례 있음)
+            'Icp/PointToPlaneMinComplexity': '0.0',
+            # DSS 도시 맵은 평지 — 무데스큐 ICP 는 주행 중 지면 링 변형으로 피치가
+            # 계통 편향돼 z 가 누적 상승(실측 141 m 에 +4.5 m)하므로 3자유도로 고정.
+            'Reg/Force3DoF': 'true',
             'Icp/Iterations': '30',
             'Icp/Epsilon': '0.001',
             'Icp/PointToPlane': 'true',
@@ -124,7 +136,8 @@ def generate_launch_description():
             'RGBD/LinearUpdate': '0.05',     # m
             # 정합: ICP 전용 (카메라 없음)
             'Reg/Strategy': '1',
-            'Reg/Force3DoF': 'false',
+            # 평지 전제 — 오돔 측 3DoF 고정과 일치시킨다 (z 드리프트 차단)
+            'Reg/Force3DoF': 'true',
             # 3D 점유 격자
             'Grid/RangeMax': '20.0',         # m
             'Grid/RangeMin': '0.3',          # m
